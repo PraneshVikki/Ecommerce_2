@@ -296,6 +296,7 @@ app.get('/AddedDetails',authenticateToken,async(req,res) =>{
 }) 
 
 app.delete('/removeItem', async (req, res) => {
+  console.log(req.body.id)
   try {
     await addNewProduct.deleteOne({ _id: req.body.id });
 
@@ -304,7 +305,7 @@ app.delete('/removeItem', async (req, res) => {
       { $pull: { AdminProduct: { _id: req.body.id } } }
     );
 
-    res.status(200).send({ message: 'Item removed successfully Refresh the page to see the result' });
+    res.status(200).send({ message: 'Item removed successfully Refresh the page to see the result!!!' });
   } catch (err) {
     console.error(err);
     res.status(500).send({ error: 'An error occurred' });

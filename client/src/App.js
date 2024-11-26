@@ -16,7 +16,7 @@ import Procedure from './Procedure';
 import { Test } from './Test';
 import Cancel from './Cancel';
 import Success from './Success';
-import { useQuery } from 'react-query';
+import { QueryClient, useMutation, useQuery, useQueryClient } from 'react-query';
 
 axios.defaults.withCredentials = true;
 export const PropRegister = createContext()
@@ -151,6 +151,27 @@ const handleAddedDetails = ()=>{
   }).catch((err)=>{console.log(err)})
 }
 
+const queryClient = useQueryClient();
+
+const {mutate } = useMutation((adminData)=>{
+  axios.post('http://localhost:3001/newProduct', adminData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    }})
+  .then(result => {
+    console.log(result.data.message);
+    toast(("Item was added"),{
+      pauseOnHover: true,
+      draggable: true,
+    })
+  }).catch(err => console.log(err));
+},{
+  onSuccess: ()=>{
+    queryClient.invalidateQueries("Product-details");
+    console.log("Success");
+  }
+})
+
 const handleProduct = (e) => {
   e.preventDefault();
 
@@ -160,9 +181,8 @@ const handleProduct = (e) => {
   adminData.append('productAmount', storeProduct.productAmount);
   adminData.append('productPrice', storeProduct.productPrice);
   adminData.append('productAdd', storeProduct.productAdd); 
-  console.log([...adminData.entries()])
-  console.log(Object.fromEntries(adminData).productImage)
-  axios.post('http://localhost:3001/newProduct',   adminData, {
+  mutate(adminData)
+/*   axios.post('http://localhost:3001/newProduct',   adminData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     }})
@@ -172,7 +192,7 @@ const handleProduct = (e) => {
       pauseOnHover: true,
       draggable: true,
     })
-  }).catch(err => console.log(err));
+  }).catch(err => console.log(err)); */
 };
 
 
@@ -349,10 +369,26 @@ const handlePrice = (e, detail) => {
   console.log(details); */
 }
 
-
+const {mutate: removeMutate} = useMutation((id)=>{
+  axios.delete('http://localhost:3001/removeItem', {
+    data: { id: id },
+  })
+  .then((result) => {
+    toast((result.data.message),{
+      pauseOnHover: true,
+      draggable: true,
+    })
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+},{
+  onSuccess:()=>{
+    queryClient.invalidateQueries("Product-details");
+  }
+})
 const handleDelete = (id) => {
-  axios
-    .delete('http://localhost:3001/removeItem', {
+  /* axios.delete('http://localhost:3001/removeItem', {
       data: { id: id },
     })
     .then((result) => {
@@ -363,7 +399,8 @@ const handleDelete = (id) => {
     })
     .catch((err) => {
       console.log(err);
-    });
+    }); */
+    removeMutate(id)
 };
 
 const handleLogout = ()=>{
